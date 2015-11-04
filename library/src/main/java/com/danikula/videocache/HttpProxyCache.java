@@ -19,6 +19,7 @@ import static com.danikula.videocache.ProxyCacheUtils.DEFAULT_BUFFER_SIZE;
 class HttpProxyCache extends ProxyCache {
 
     private static final float NO_CACHE_BARRIER = .2f;
+    private static final int NO_CACHE_BYTES_BARRIER = 512 * 1024;
 
     private final HttpUrlSource source;
     private final FileCache cache;
@@ -52,7 +53,7 @@ class HttpProxyCache extends ProxyCache {
         boolean sourceLengthKnown = sourceLength > 0;
         int cacheAvailable = cache.available();
         // do not use cache for partial requests which too far from available cache. It seems user seek video.
-        return !sourceLengthKnown || !request.partial || request.rangeOffset <= cacheAvailable + sourceLength * NO_CACHE_BARRIER;
+        return !sourceLengthKnown || !request.partial || request.rangeOffset <= cacheAvailable + Math.min(sourceLength * NO_CACHE_BARRIER, NO_CACHE_BYTES_BARRIER);
     }
 
     private String newResponseHeaders(GetRequest request) throws IOException, ProxyCacheException {
