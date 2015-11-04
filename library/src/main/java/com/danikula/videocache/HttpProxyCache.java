@@ -75,7 +75,14 @@ class HttpProxyCache extends ProxyCache {
     private void responseWithCache(OutputStream out, long offset) throws ProxyCacheException, IOException {
         byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
         int readBytes;
-        while ((readBytes = read(buffer, offset, buffer.length)) != -1) {
+        while (true) {
+            synchronized (stopLock) {
+                if (isStopped())
+                    break;
+            }
+            if ((readBytes = read(buffer, offset, buffer.length)) == -1)
+                break;
+
             out.write(buffer, 0, readBytes);
             offset += readBytes;
         }
@@ -88,7 +95,14 @@ class HttpProxyCache extends ProxyCache {
             source.open((int) offset);
             byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
             int readBytes;
-            while ((readBytes = source.read(buffer)) != -1) {
+            while (true) {
+                synchronized (stopLock) {
+                    if (isStopped())
+                        break;
+                }
+                if ((readBytes = source.read(buffer)) == -1)
+                    break;
+
                 out.write(buffer, 0, readBytes);
                 offset += readBytes;
             }

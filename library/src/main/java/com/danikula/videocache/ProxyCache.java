@@ -23,7 +23,7 @@ class ProxyCache {
     private final Source source;
     private final Cache cache;
     private final Object wc = new Object();
-    private final Object stopLock = new Object();
+    protected final Object stopLock = new Object();
     private final AtomicInteger readSourceErrorsCount;
     private volatile Thread sourceReaderThread;
     private volatile boolean stopped;
@@ -151,7 +151,7 @@ class ProxyCache {
         }
     }
 
-    private boolean isStopped() {
+    protected final boolean isStopped() {
         return Thread.currentThread().isInterrupted() || stopped;
     }
 
