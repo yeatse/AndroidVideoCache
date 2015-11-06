@@ -28,6 +28,7 @@ class ProxyCache {
     private volatile Thread sourceReaderThread;
     private volatile boolean stopped;
     private volatile int percentsAvailable = -1;
+    private volatile long bytesAvailable = -1;
 
     public ProxyCache(Source source, Cache cache) {
         this.source = checkNotNull(source);
@@ -46,6 +47,7 @@ class ProxyCache {
         int read = cache.read(buffer, offset, length);
         if (cache.isCompleted() && percentsAvailable != 100) {
             percentsAvailable = 100;
+            bytesAvailable = cache.available();
             onCachePercentsAvailableChanged(100);
         }
         return read;
@@ -103,12 +105,13 @@ class ProxyCache {
     protected void onCacheAvailable(long cacheAvailable, long sourceLength) {
         boolean zeroLengthSource = sourceLength == 0;
         int percents = zeroLengthSource ? 100 : (int) (cacheAvailable * 100 / sourceLength);
-        boolean percentsChanged = percents != percentsAvailable;
+        boolean percentsChanged = cacheAvailable != bytesAvailable;
         boolean sourceLengthKnown = sourceLength >= 0;
         if (sourceLengthKnown && percentsChanged) {
             onCachePercentsAvailableChanged(percents);
         }
         percentsAvailable = percents;
+        bytesAvailable = cacheAvailable;
     }
 
     protected void onCachePercentsAvailableChanged(int percentsAvailable) {
